@@ -1,0 +1,15 @@
+{
+  "name": "slider",
+  "version": "1.0.0",
+  "description": "basic slider",
+  "main": "slider.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "alena-bordiug",
+  "license": "ISC",
+  "devDependencies": {
+    "gulp": "^4.0.2",
+    "gulp-file-include": "^2.3.0"
+  }
+}
