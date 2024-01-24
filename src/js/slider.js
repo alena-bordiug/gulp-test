@@ -1,7 +1,7 @@
 let currentSlideIndex = 0;
-let allSlides = document.querySelectorAll('.slide').length;
+const allSlides = document.querySelectorAll('.slide').length;
 
-console.log('helloooo')
+console.log('test')
 
 function showSlide(index) {
   const slides = document.querySelectorAll('.slide');

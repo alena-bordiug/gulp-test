@@ -1,16 +1,33 @@
-const {src, dest} = require('gulp');
+const {src, dest, watch, parallel, series} = require('gulp');
 const fileinclude = require('gulp-file-include');
 const sass = require('gulp-sass')(require('sass'));
 const sourcemaps = require('gulp-sourcemaps');
 const rename = require('gulp-rename');
 const uglify = require('gulp-uglify');
+const eslint = require('gulp-eslint-new');
+const browserSync = require('browser-sync').create();
+
+const PATH = {
+  html: {
+    src: 'src/*.html',
+    dist: 'dist',
+  },
+  scss: {
+    src: 'src/scss/**/*.scss',
+    dist: 'dist/css',
+  },
+  js: {
+    src: 'src/js/*.js',
+    dist: 'dist/js',
+  },
+};
 
 function defaultTask() {}
 
 function htmlTask() {
-  return src('src/*.html')
+  return src(PATH.html.src)
     .pipe(fileinclude({prefix: '@@'}))
-    .pipe(dest('dist'));
+    .pipe(dest(PATH.html.dist));
 }
 
 function stylesTask() {
@@ -24,6 +41,9 @@ function stylesTask() {
 
 function jsTask() {
   return src('src/js/*.js')
+    .pipe(eslint())
+    .pipe(eslint.format())
+    // .pipe(eslint.failOnError())
     .pipe(sourcemaps.init())
     .pipe(uglify())
     .pipe(rename({suffix: '.min'}))
@@ -31,8 +51,46 @@ function jsTask() {
     .pipe(dest('dist/js'));
 }
 
+function eslintTask() {
+  return src('src/js/*.js')
+    .pipe(eslint())
+    .pipe(eslint.format())
+    .pipe(eslint.failOnError());
+}
+
+function browserSyncServer(cb) {
+  browserSync.init({
+    server: {
+      baseDir: 'dist',
+    }
+  });
+  cb();
+}
+
+function browserSyncReload(cb) {
+  browserSync.reload();
+  cb();
+}
+
+function watchTask() {
+    watch(PATH.html.src, series(htmlTask, browserSyncReload));
+    watch(PATH.scss.src, series(stylesTask, browserSyncReload));
+    watch(PATH.js.src, series(jsTask, browserSyncReload));
+}
+
+
+
 exports.htmlTask = htmlTask;
 exports.stylesTask = stylesTask;
 exports.jsTask = jsTask;
+exports.eslintTask = eslintTask;
+exports.browserSyncServer = browserSyncServer;
+exports.watchTask = watchTask;
 
-exports.default = defaultTask;
+exports.default = parallel(
+  htmlTask,
+  stylesTask,
+  jsTask,
+  browserSyncServer,
+  watchTask
+);
