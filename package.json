@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "eslint-config-airbnb-base": "^15.0.0",
+    "gulp-copy": "^4.0.1",
     "gulp-eslint-new": "^1.9.0",
     "gulp-rename": "^2.0.0",
     "gulp-sourcemaps": "^3.0.0",

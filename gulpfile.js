@@ -6,6 +6,7 @@ const rename = require('gulp-rename');
 const uglify = require('gulp-uglify');
 const eslint = require('gulp-eslint-new');
 const browserSync = require('browser-sync').create();
+const gulpCopy = require('gulp-copy');
 
 const PATH = {
   html: {
@@ -19,6 +20,10 @@ const PATH = {
   js: {
     src: 'src/js/*.js',
     dist: 'dist/js',
+  },
+  assets: {
+    src: 'src/assets/**/*.*',
+    dist: 'dist/assets',
   },
 };
 
@@ -40,15 +45,16 @@ function stylesTask() {
 }
 
 function jsTask() {
-  return src('src/js/*.js')
-    .pipe(eslint())
-    .pipe(eslint.format())
-    // .pipe(eslint.failOnError())
-    .pipe(sourcemaps.init())
-    .pipe(uglify())
-    .pipe(rename({suffix: '.min'}))
-    .pipe(sourcemaps.write('.'))
-    .pipe(dest('dist/js'));
+  return (
+    src('src/js/*.js')
+      .pipe(eslint())
+      .pipe(eslint.format())
+      .pipe(sourcemaps.init())
+      .pipe(uglify())
+      .pipe(rename({suffix: '.min'}))
+      .pipe(sourcemaps.write('.'))
+      .pipe(dest('dist/js'))
+  );
 }
 
 function eslintTask() {
@@ -62,7 +68,7 @@ function browserSyncServer(cb) {
   browserSync.init({
     server: {
       baseDir: 'dist',
-    }
+    },
   });
   cb();
 }
@@ -72,25 +78,30 @@ function browserSyncReload(cb) {
   cb();
 }
 
-function watchTask() {
-    watch(PATH.html.src, series(htmlTask, browserSyncReload));
-    watch(PATH.scss.src, series(stylesTask, browserSyncReload));
-    watch(PATH.js.src, series(jsTask, browserSyncReload));
+function copyTask() {
+  return src(PATH.assets.src).pipe(dest(PATH.assets.dist));
 }
 
-
+function watchTask() {
+  watch(PATH.html.src, series(htmlTask, browserSyncReload));
+  watch(PATH.scss.src, series(stylesTask, browserSyncReload));
+  watch(PATH.js.src, series(jsTask, browserSyncReload));
+  watch(PATH.assets.src, series(copyTask, browserSyncReload));
+}
 
 exports.htmlTask = htmlTask;
 exports.stylesTask = stylesTask;
 exports.jsTask = jsTask;
 exports.eslintTask = eslintTask;
 exports.browserSyncServer = browserSyncServer;
+exports.copyTask = copyTask;
 exports.watchTask = watchTask;
 
 exports.default = parallel(
   htmlTask,
   stylesTask,
   jsTask,
+  copyTask,
   browserSyncServer,
-  watchTask
+  watchTask,
 );
